@@ -136,6 +136,7 @@ class TestApp : Application
             new XAttribute(XNamespace.Xmlns+"x","http://schemas.microsoft.com/winfx/2006/xaml"),
             new XAttribute(XNamespace.Xmlns+"local","clr-namespace:GlassDock.TopBar;assembly=GlassDock.TopBar"),
             xml.Root!.Element(ns+"Application.Resources")!.Elements());
-        app.Resources=(ResourceDictionary)XamlReader.Parse(resources.ToString());app.Run();
+        string markup=resources.ToString().Replace("clr-namespace:GlassDock.TopBar\"","clr-namespace:GlassDock.TopBar;assembly=GlassDock.TopBar\"");
+        app.Resources=(ResourceDictionary)XamlReader.Parse(markup);app.Run();
     }
 }

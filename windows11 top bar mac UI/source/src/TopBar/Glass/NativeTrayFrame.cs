@@ -4,6 +4,8 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Collections.Generic;
+using System.Windows;
 using PixelFormat=System.Drawing.Imaging.PixelFormat;
 namespace GlassDock.TopBar;
 
@@ -11,12 +13,11 @@ namespace GlassDock.TopBar;
 // or other application windows. Pixels remain in memory for this open session.
 internal static class NativeTrayFrame
 {
-    internal static BitmapSource? Capture(nint hwnd,bool allowScreenFallback)
+    internal static BitmapSource? Capture(nint hwnd)
     {
         if(!BarNative.GetWindowRect(hwnd,out var r))return null;
         int width=r.Right-r.Left,height=r.Bottom-r.Top;
         if(width<8||height<8||width>2048||height>2048)return null;
-        int inset=Math.Min((int)Math.Round(20*GetDpiForWindow(hwnd)/96.0),Math.Min(width,height)/3);
         using var bitmap=new Bitmap(width,height,PixelFormat.Format32bppArgb);
         bool printed;
         using(var graphics=Graphics.FromImage(bitmap))
@@ -26,11 +27,30 @@ internal static class NativeTrayFrame
         var pixels=Read(bitmap);
         if(!printed||Contrast(pixels)<24)
         {
-            if(!allowScreenFallback)return null;
-            using(var graphics=Graphics.FromImage(bitmap))graphics.CopyFromScreen(r.Left,r.Top,0,0,new Size(width,height),CopyPixelOperation.SourceCopy);
-            pixels=Read(bitmap);
-            if(Contrast(pixels)<24)return null;
+            return null;
         }
+        return FromPixels(pixels,width,height,width*4,GetDpiForWindow(hwnd));
+    }
+    internal static int CountVisibleIcons(BitmapSource artwork,IReadOnlyList<Int32Rect> cells)
+    {
+        var pixels=new byte[artwork.PixelWidth*artwork.PixelHeight*4];artwork.CopyPixels(pixels,artwork.PixelWidth*4,0);
+        int count=0;
+        foreach(var cell in cells)
+        {
+            int margin=Math.Min(6,Math.Min(cell.Width,cell.Height)/4),ink=0;
+            for(int y=Math.Max(0,cell.Y+margin);y<Math.Min(artwork.PixelHeight,cell.Y+cell.Height-margin);y++)
+                for(int x=Math.Max(0,cell.X+margin);x<Math.Min(artwork.PixelWidth,cell.X+cell.Width-margin);x++)
+                    if(pixels[(y*artwork.PixelWidth+x)*4+3]>128)ink++;
+            if(ink>=8)count++;
+        }
+        return count;
+    }
+    internal static BitmapSource? FromPixels(byte[] input,int width,int height,int stride,uint dpi)
+    {
+        var pixels=new byte[width*height*4];
+        for(int y=0;y<height;y++)Array.Copy(input,y*stride,pixels,y*width*4,width*4);
+        if(Contrast(pixels)<24)return null;
+        int inset=Math.Min((int)Math.Round(20*dpi/96.0),Math.Min(width,height)/3);
         var counts=new System.Collections.Generic.Dictionary<int,int>();
         for(int y=8;y<height-8;y++)for(int x=8;x<width-8;x++)
         {
@@ -40,13 +60,16 @@ internal static class NativeTrayFrame
         }
         int dominant=0,best=0;foreach(var pair in counts)if(pair.Value>best){dominant=pair.Key;best=pair.Value;}
         int blue=((dominant>>12)&63)*4+2,green=((dominant>>6)&63)*4+2,red=(dominant&63)*4+2;
+        int ink=0;
         for(int y=0;y<height;y++)for(int x=0;x<width;x++)
         {
             int i=(y*width+x)*4;
             int difference=Math.Max(Math.Abs(pixels[i]-blue),Math.Max(Math.Abs(pixels[i+1]-green),Math.Abs(pixels[i+2]-red)));
             int alpha=x<inset||y<inset||x>=width-inset||y>=height-inset?0:Math.Clamp((difference-6)*255/18,0,255);
             pixels[i]=(byte)(pixels[i]*alpha/255);pixels[i+1]=(byte)(pixels[i+1]*alpha/255);pixels[i+2]=(byte)(pixels[i+2]*alpha/255);pixels[i+3]=(byte)alpha;
+            if(alpha>128)ink++;
         }
+        if(ink<40)return null;
         var source=BitmapSource.Create(width,height,96,96,PixelFormats.Pbgra32,null,pixels,width*4);source.Freeze();return source;
     }
     static byte[] Read(Bitmap bitmap)

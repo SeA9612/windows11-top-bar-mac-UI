@@ -8,7 +8,7 @@
 
 GlassDock TopBar는 Windows 11에서 독립 실행되는 상단 바입니다. macOS에서 영감을 받은 간결한 구성에 Windows 시스템 메뉴, 현재 앱 이름, 소리와 네트워크, 날짜·시간을 담았습니다. [GlassDock 독](https://github.com/SeA9612/windows11-glass-dock-mac-UI)과 함께 사용할 수 있으며, 독 설치 없이도 실행됩니다.
 
-[**실행용 ZIP 다운로드 · v0.1.1**](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/download/v0.1.1/GlassDock-TopBar-v0.1.1-win-x64.zip) · [GitHub Release](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/tag/v0.1.1) · [변경 이력](Release%20Notes/README.md)
+[**실행용 ZIP 다운로드 · v0.1.2**](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/download/v0.1.2/GlassDock-TopBar-v0.1.2-win-x64.zip) · [GitHub Release](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/tag/v0.1.2) · [변경 이력](Release%20Notes/README.md)
 
 ## 주요 기능
 
@@ -32,19 +32,19 @@ Windows 11 **x64**용입니다. .NET 런타임이 포함되어 있어 SDK·런�
 
 EXE와 같은 폴더의 DLL·런타임 파일을 함께 보관하세요. ZIP 안에서 직접 실행하거나 EXE만 분리해 이동하지 마세요. 자동 시작이나 관리자 권한을 요구하지 않습니다.
 
-기존 독 저장소와 같이 **Code → Download ZIP**으로 전체 저장소를 받을 수도 있습니다. 이 경우 `windows11 top bar mac UI/portable/GlassDock-TopBar-v0.1.1-win-x64.zip`을 한 번 더 풀고 실행하세요.
+기존 독 저장소와 같이 **Code → Download ZIP**으로 전체 저장소를 받을 수도 있습니다. 이 경우 `windows11 top bar mac UI/portable/GlassDock-TopBar-v0.1.2-win-x64.zip`을 한 번 더 풀고 실행하세요.
 
 자세한 안내와 체크섬은 [실행·소스 폴더](windows11%20top%20bar%20mac%20UI/README.md)에 있습니다.
 
 ## 이번 배포의 수정 사항
 
-현재 버전은 **0.1.1 미리보기 배포본**입니다. 최대화·전체 화면 자동 숨김과 예약 공간 복원을 포함하며, 최대화 해제 후 바가 28픽셀 아래로 밀리던 오류를 수정했습니다. 복원 직후 실제 창 좌표를 바로잡고 외부 위치 변경에도 재배치합니다. 투명 버튼의 빈 부분이 바탕화면 클릭으로 전달되던 문제도 보완했습니다.
+현재 버전은 **0.1.2 미리보기 배포본**입니다. 트레이 창이 비어 보이는 오류, 현재 Windows의 펼치기 버튼 인식, 클릭 입력 차단과 클릭 영역 어긋남, 초기화 취소·원복을 수정했습니다. 최대화 자동 숨김과 복원 위치 수정도 유지합니다.
 
-최대화·복원 6회 반복, 전체 화면 해제, 최소화, 강제로 밀어낸 위치의 자동 복구와 기본 검사 42개가 통과했습니다. 상세 내용은 [0.1.1 릴리즈 노트](Release%20Notes/Release%20Note0.1.1%20ver.md)에서 확인하세요.
+실제 트레이 아이콘 7개 표시와 모든 아이콘 영역의 그림·입력 대상, 아이콘 변경 반영, 앱 콜백, 닫기·재열기·복구 검사 및 기본 검사 42개가 통과했습니다. 최대화·복원 6회 후 트레이 재열기도 확인했습니다. 상세 내용은 [0.1.2 릴리즈 노트](Release%20Notes/Release%20Note0.1.2%20ver.md)를 참고하세요.
 
 ## 현재 확인된 제한
 
-- **트레이 아이콘 렌더링 오류가 남아 있습니다.** 트레이 유리 화면이 비거나 아이콘 화면을 읽지 못할 수 있습니다. 모든 트레이 기능이 정상이라고 보장하는 안정화 배포본은 아닙니다.
+- 0.1.1에서 관찰한 트레이 빈 화면 오류는 0.1.2에서 현재 PC 기준으로 수정·검증했습니다. 모든 Windows 버전과 PC의 동작까지 검증한 안정화 배포본은 아닙니다.
 - Windows 알림 위치 조정은 구현되어 있으나, 최신 재검사에서 실제 배너가 나타나지 않아 수신·배치 검증을 완료하지 못했습니다. 카카오톡 자체 알림은 각 PC의 카카오톡에서 우상단 위치를 따로 설정해야 합니다.
 - 보조 모니터·다른 DPI 장치와 다른 PC의 실제 화면 동작은 이번 배포에서 검증하지 않았습니다. 다른 앱의 파일·편집 메뉴를 옮기는 범용 기능은 없습니다.
 

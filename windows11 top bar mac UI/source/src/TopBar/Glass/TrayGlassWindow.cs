@@ -17,10 +17,12 @@ internal sealed class TrayGlassWindow : Window,IDisposable
     NativeTrayOpacity? nativeOpacity;
     HostBackdrop? material;
     bool disposed;
-    internal TrayGlassWindow(nint source)
+    internal System.Windows.Media.Imaging.BitmapSource? Artwork=>icons.Source as System.Windows.Media.Imaging.BitmapSource;
+    int frameCount=1;
+    internal int FrameCount=>frameCount;
+    internal TrayGlassWindow(nint source,System.Windows.Media.Imaging.BitmapSource artwork)
     {
         this.source=source;
-        var artwork=NativeTrayFrame.Capture(source,true)??throw new InvalidOperationException("트레이 아이콘을 그리지 못했습니다.");
         icons.Source=artwork;
         Title="GlassDock · 트레이";WindowStyle=WindowStyle.None;ResizeMode=ResizeMode.NoResize;
         AllowsTransparency=true;Background=Brushes.Transparent;ShowInTaskbar=false;ShowActivated=false;Topmost=true;
@@ -39,8 +41,8 @@ internal sealed class TrayGlassWindow : Window,IDisposable
                 return 0;
             });
         };
-        SizeChanged+=(_,_)=>material?.Sync(this);
-        LocationChanged+=(_,_)=>material?.Sync(this);
+        SizeChanged+=(_,_)=>SyncMaterial();
+        LocationChanged+=(_,_)=>SyncMaterial();
         Closed+=(_,_)=>Release();
         try
         {
@@ -57,14 +59,17 @@ internal sealed class TrayGlassWindow : Window,IDisposable
         if(BarNative.GetWindowRect(hwnd,out var current)&&
            (current.Left!=bounds.Left||current.Top!=bounds.Top||current.Right!=bounds.Right||current.Bottom!=bounds.Bottom))
             BarNative.SetWindowPos(hwnd,(nint)(-1),bounds.Left,bounds.Top,bounds.Right-bounds.Left,bounds.Bottom-bounds.Top,0x10);
-        material?.Sync(this);
+        // Keep the non-layered Composition backdrop below Explorer's input
+        // window. HTTRANSPARENT alone cannot pass input across UI threads.
+        material?.Sync(source,bounds,(float)VisualTreeHelper.GetDpi(this).DpiScaleX);
     }
+    void SyncMaterial(){if(BarNative.GetWindowRect(source,out var bounds))material?.Sync(source,bounds,(float)VisualTreeHelper.GetDpi(this).DpiScaleX);}
     void Refresh()
     {
         if(disposed||!BarNative.IsWindowVisible(source))return;
         try
         {
-            if(NativeTrayFrame.Capture(source,false) is { } artwork)icons.Source=artwork;
+            if(NativeTrayFrame.Capture(source) is { } artwork){icons.Source=artwork;frameCount++;}
             if(BarNative.GetWindowRect(source,out var bounds))Sync(bounds);
         }
         catch(Exception e){BarSettings.Log(e);refresh.Stop();}

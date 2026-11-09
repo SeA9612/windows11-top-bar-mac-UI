@@ -8,7 +8,7 @@
 
 [GlassDock-TopBar-v0.1.1-win-x64.zip](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/download/v0.1.1/GlassDock-TopBar-v0.1.1-win-x64.zip)의 전체 압축을 풀고 `GlassDock.TopBar.exe`를 실행합니다. Windows 11 x64용이며 .NET·SDK 설치나 빌드가 필요하지 않습니다. EXE와 같은 폴더의 런타임 파일을 함께 보관하세요.
 
-저장소의 `windows11 top bar mac UI/portable/`에도 동일한 ZIP이 있습니다. 소스는 같은 폴더의 `source/`에서 수정할 수 있습니다.
+`v0.1.1` 태그의 `windows11 top bar mac UI/portable/`에도 당시 ZIP이 보존되어 있습니다. 현재 main의 portable 폴더는 최신 실행본을 제공합니다. 소스는 같은 폴더의 `source/`에서 수정할 수 있습니다.
 
 ## 새로 적용한 동작
 
@@ -48,7 +48,7 @@ Windows 시스템 메뉴, 최근 항목, 창 조작, 실제 전경 앱 이름, �
 | 트레이 유리 아이콘 표시 | **실패·미해결** |
 | 실제 Windows 알림 수신·배치 재검사 | **배너 미표시로 확인 불가** |
 
-상세 기록은 [소스의 검증 결과](../windows11%20top%20bar%20mac%20UI/source/validation/검증결과_2026-11-09.md)에 있습니다. 압축 해제본의 패키지 검사는 [배포 검증 기록](../windows11%20top%20bar%20mac%20UI/PACKAGE_VALIDATION.md)에 별도로 기록합니다.
+상세 기록은 [소스의 검증 결과](../windows11%20top%20bar%20mac%20UI/source/validation/검증결과_2026-11-09.md)에 있습니다. 압축 해제본의 패키지 검사는 [배포 검증 기록](https://github.com/SeA9612/windows11-top-bar-mac-UI/blob/v0.1.1/windows11%20top%20bar%20mac%20UI/PACKAGE_VALIDATION.md)에 별도로 기록합니다.
 
 ## 알려진 문제와 범위
 

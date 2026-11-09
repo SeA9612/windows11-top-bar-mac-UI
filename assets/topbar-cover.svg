@@ -20,8 +20,8 @@
   <rect x="816" y="370" width="392" height="182" rx="20" fill="url(#glass)" stroke="#ffffff" stroke-opacity=".14"/>
   <text x="98" y="414" font-size="14" fill="#92ddee">01 · DESKTOP</text><text x="98" y="457" font-size="26" font-weight="600">Transparent</text><text x="98" y="501" font-size="16" fill="#bcd3e4">Clear background, glass menus.</text>
   <text x="470" y="414" font-size="14" fill="#92ddee">02 · MAXIMIZED</text><text x="470" y="457" font-size="26" font-weight="600">Auto hidden</text><text x="470" y="501" font-size="16" fill="#bcd3e4">More space for the active window.</text>
-  <text x="842" y="414" font-size="14" fill="#92ddee">03 · RESTORED</text><text x="842" y="457" font-size="26" font-weight="600">Back at the top</text><text x="842" y="501" font-size="16" fill="#bcd3e4">Position recovery in v0.1.1.</text>
-  <text x="74" y="601" font-size="14" fill="#a4c2d7">v0.1.1 · Preview release · Windows x64 · Runtime included</text>
+  <text x="842" y="414" font-size="14" fill="#92ddee">03 · RESTORED</text><text x="842" y="457" font-size="26" font-weight="600">Back at the top</text><text x="842" y="501" font-size="16" fill="#bcd3e4">Restored position. Working tray.</text>
+  <text x="74" y="601" font-size="14" fill="#a4c2d7">v0.1.2 · Preview release · Windows x64 · Runtime included</text>
   <text x="1160" y="601" text-anchor="end" font-size="12" fill="#a4c2d7">Concept illustration</text>
  </g>
 </svg>

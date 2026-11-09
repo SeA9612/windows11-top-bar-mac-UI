@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Text;
 using System.Threading.Tasks;
 namespace GlassDock.TopBar;
 
@@ -46,6 +47,23 @@ internal sealed class NativeTrayOpacity : IDisposable
         else cancellation?.Dispose();
         guard=null;cancellation=null;
     }
+    internal void RevealTaskbarContent()
+    {
+        if((BarNative.GetWindowLong(hwnd,-16)&0x10000000)==0)
+        {
+            if(!SetProp(hwnd,Prefix+"RestoreHidden",token))throw new Win32Exception(Marshal.GetLastWin32Error());
+            BarNative.ShowWindow(hwnd,4);
+        }
+        BarNative.EnumChildWindows(hwnd,(child,_)=>{
+            var name=new StringBuilder(128);BarNative.GetClassName(child,name,name.Capacity);
+            if((BarNative.GetWindowLong(child,-16)&0x10000000)==0&&name.ToString() is "Windows.UI.Composition.DesktopWindowContentBridge" or "Windows.UI.Core.CoreWindow" or "Windows.UI.Input.InputSite.WindowClass")
+            {
+                if(!SetProp(child,Prefix+"RestoreHidden",token))throw new Win32Exception(Marshal.GetLastWin32Error());
+                BarNative.ShowWindow(child,4);
+            }
+            return true;
+        },0);
+    }
     void StartGuard()
     {
         // Linked-source integration tests do not have the App startup branch.
@@ -76,7 +94,7 @@ internal sealed class NativeTrayOpacity : IDisposable
     }
     internal static void RecoverOrphans()
     {
-        foreach(string name in new[]{"TopLevelWindowForOverflowXamlIsland","NotifyIconOverflowWindow"})
+        foreach(string name in new[]{"TopLevelWindowForOverflowXamlIsland","NotifyIconOverflowWindow","Shell_TrayWnd"})
         {
             var hwnd=BarNative.FindWindow(name,null);if(hwnd!=0)RecoverOrphan(hwnd);
         }
@@ -92,6 +110,9 @@ internal sealed class NativeTrayOpacity : IDisposable
     static void RestoreSaved(nint hwnd)
     {
         if(!BarNative.IsWindow(hwnd)||GetProp(hwnd,Prefix+"Token")==0)return;
+        var token=GetProp(hwnd,Prefix+"Token");
+        BarNative.EnumChildWindows(hwnd,(child,_)=>{if(GetProp(child,Prefix+"RestoreHidden")==token){BarNative.ShowWindow(child,0);RemoveProp(child,Prefix+"RestoreHidden");}return true;},0);
+        if(GetProp(hwnd,Prefix+"RestoreHidden")==token){BarNative.ShowWindow(hwnd,0);RemoveProp(hwnd,Prefix+"RestoreHidden");}
         // Window properties disappear when an HWND is destroyed, so a reused
         // handle cannot receive an earlier session's recovery data.
         if(GetProp(hwnd,Prefix+"Attributes")!=0)
