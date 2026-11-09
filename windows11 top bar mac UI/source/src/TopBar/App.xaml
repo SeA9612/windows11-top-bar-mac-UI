@@ -1,0 +1,54 @@
+﻿<Application x:Class="GlassDock.TopBar.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:GlassDock.TopBar">
+ <Application.Resources>
+  <LinearGradientBrush x:Key="GlassTint" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#11F8FAFF" Offset="0"/><GradientStop Color="#06E8EDFA" Offset="0.53"/><GradientStop Color="#0CF6F8FF" Offset="1"/></LinearGradientBrush>
+  <Style x:Key="SystemMenuItemStyle" TargetType="MenuItem">
+   <Setter Property="Background" Value="Transparent"/>
+   <Setter Property="FontFamily" Value="Segoe UI, Malgun Gothic"/><Setter Property="FontSize" Value="13"/>
+   <Setter Property="Padding" Value="11,7"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="MenuItem">
+    <Grid>
+     <Border x:Name="Row" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="18"/></Grid.ColumnDefinitions>
+       <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+       <TextBlock x:Name="Arrow" Grid.Column="1" Text="&#x203A;" FontSize="17" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed"/>
+      </Grid>
+     </Border>
+     <Popup x:Name="PART_Popup" IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" Placement="Right" HorizontalOffset="4" AllowsTransparency="True" Focusable="False">
+      <Grid Background="Transparent">
+       <Border local:GlassPopup.Material="True" Background="{StaticResource GlassTint}" CornerRadius="16" Padding="6,7" MinWidth="220"><StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/></Border>
+       <local:GlassEdgeLayer CornerRadiusDip="16" IsHitTestVisible="False" Focusable="False"/>
+      </Grid>
+     </Popup>
+    </Grid>
+    <ControlTemplate.Triggers>
+     <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Row" Property="Background" Value="#24FFFFFF"/></Trigger>
+     <Trigger Property="IsSubmenuOpen" Value="True"><Setter TargetName="Row" Property="Background" Value="#24FFFFFF"/></Trigger>
+     <Trigger Property="HasItems" Value="True"><Setter TargetName="Arrow" Property="Visibility" Value="Visible"/></Trigger>
+     <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Row" Property="Opacity" Value="0.42"/></Trigger>
+    </ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style TargetType="MenuItem" BasedOn="{StaticResource SystemMenuItemStyle}"/>
+  <Style TargetType="Separator"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Separator"><Border Height="1" Background="#406B788C" Margin="10,5"/></ControlTemplate></Setter.Value></Setter></Style>
+  <Style x:Key="GlassContextMenuStyle" TargetType="ContextMenu">
+   <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#18202E"/>
+   <Setter Property="FontFamily" Value="Segoe UI, Malgun Gothic"/><Setter Property="FontSize" Value="13"/>
+   <Setter Property="MinWidth" Value="200"/><Setter Property="HasDropShadow" Value="False"/>
+   <Setter Property="OverridesDefaultStyle" Value="True"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ContextMenu">
+    <Grid Background="Transparent" SnapsToDevicePixels="True">
+     <Border local:GlassPopup.Material="True" Background="{StaticResource GlassTint}" CornerRadius="16" Padding="6,7"><StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/></Border>
+     <local:GlassEdgeLayer CornerRadiusDip="16" IsHitTestVisible="False" Focusable="False"/>
+    </Grid>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style TargetType="ContextMenu" BasedOn="{StaticResource GlassContextMenuStyle}"/>
+  <Style x:Key="SystemMenuStyle" TargetType="ContextMenu" BasedOn="{StaticResource GlassContextMenuStyle}"><Setter Property="MinWidth" Value="270"/></Style>
+  <Style TargetType="TextBlock"><Setter Property="FontFamily" Value="Segoe UI, Malgun Gothic"/><Setter Property="FontSize" Value="12"/></Style>
+  <Style TargetType="Button">
+   <Setter Property="Foreground" Value="White"/><Setter Property="FontFamily" Value="Segoe UI, Malgun Gothic"/><Setter Property="FontSize" Value="12"/><Setter Property="Height" Value="28"/><Setter Property="Padding" Value="9,0"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderBrush" Value="Transparent"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Body" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Body" Property="Background" Value="#25FFFFFF"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="Body" Property="Background" Value="#45FFFFFF"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Body" Property="BorderBrush" Value="#A0FFFFFF"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="Body" Property="Opacity" Value="0.4"/><Setter Property="Cursor" Value="Arrow"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+  </Style>
+ </Application.Resources>
+</Application>

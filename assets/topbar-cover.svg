@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+ <defs>
+  <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#091527"/><stop offset="1" stop-color="#1a4468"/></linearGradient>
+  <linearGradient id="glass" x2="1" y2="1"><stop stop-color="#ffffff" stop-opacity=".20"/><stop offset="1" stop-color="#ffffff" stop-opacity=".05"/></linearGradient>
+  <radialGradient id="glow"><stop stop-color="#52d5ed" stop-opacity=".3"/><stop offset="1" stop-color="#52d5ed" stop-opacity="0"/></radialGradient>
+ </defs>
+ <rect width="1280" height="640" rx="28" fill="url(#bg)"/>
+ <ellipse cx="950" cy="250" rx="490" ry="330" fill="url(#glow)"/>
+ <path d="M700 640Q830 80 1280 190M480 640Q790 220 1280 430" fill="none" stroke="#8de8f2" stroke-opacity=".10" stroke-width="2"/>
+ <g font-family="Segoe UI,Arial,sans-serif" fill="#eef8ff">
+  <text x="72" y="112" font-size="17" letter-spacing="4" fill="#91d7ec">WINDOWS 11 · GLASSDOCK</text>
+  <text x="72" y="184" font-size="60" font-weight="600">TopBar — mac UI</text>
+  <text x="74" y="226" font-size="21" fill="#bcd3e4">A clear desktop. A bar that makes room.</text>
+  <rect x="72" y="276" width="1136" height="48" rx="12" fill="url(#glass)" stroke="#d8f5ff" stroke-opacity=".3"/>
+  <g fill="#eef8ff"><path d="M94 291h8v8h-8zm11 0h8v8h-8zm-11 11h8v8h-8zm11 0h8v8h-8z"/></g>
+  <text x="130" y="306" font-size="16" font-weight="600">Desktop</text><text x="232" y="306" font-size="15">App</text><text x="285" y="306" font-size="15">Window</text><text x="368" y="306" font-size="15">Help</text>
+  <text x="962" y="306" font-size="15">ENG</text><text x="1021" y="306" font-size="18">⌁</text><path d="m1066 298 5 5 5-5" fill="none" stroke="#eef8ff" stroke-width="2"/><text x="1100" y="306" font-size="15">10:00</text>
+  <rect x="72" y="370" width="348" height="182" rx="20" fill="url(#glass)" stroke="#ffffff" stroke-opacity=".14"/>
+  <rect x="444" y="370" width="348" height="182" rx="20" fill="url(#glass)" stroke="#ffffff" stroke-opacity=".14"/>
+  <rect x="816" y="370" width="392" height="182" rx="20" fill="url(#glass)" stroke="#ffffff" stroke-opacity=".14"/>
+  <text x="98" y="414" font-size="14" fill="#92ddee">01 · DESKTOP</text><text x="98" y="457" font-size="26" font-weight="600">Transparent</text><text x="98" y="501" font-size="16" fill="#bcd3e4">Clear background, glass menus.</text>
+  <text x="470" y="414" font-size="14" fill="#92ddee">02 · MAXIMIZED</text><text x="470" y="457" font-size="26" font-weight="600">Auto hidden</text><text x="470" y="501" font-size="16" fill="#bcd3e4">More space for the active window.</text>
+  <text x="842" y="414" font-size="14" fill="#92ddee">03 · RESTORED</text><text x="842" y="457" font-size="26" font-weight="600">Back at the top</text><text x="842" y="501" font-size="16" fill="#bcd3e4">Position recovery in v0.1.1.</text>
+  <text x="74" y="601" font-size="14" fill="#a4c2d7">v0.1.1 · Preview release · Windows x64 · Runtime included</text>
+  <text x="1160" y="601" text-anchor="end" font-size="12" fill="#a4c2d7">Concept illustration</text>
+ </g>
+</svg>

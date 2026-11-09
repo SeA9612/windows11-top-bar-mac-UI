@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><TargetFramework>net8.0-windows10.0.22000.0</TargetFramework><OutputType>Exe</OutputType><UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><ImplicitUsings>disable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+ <ItemGroup>
+  <Compile Include="../../src/TopBar/BarNative.cs" Link="BarNative.cs"/>
+  <Compile Include="../../src/TopBar/TrayPopupPlacement.cs" Link="TrayPopupPlacement.cs"/>
+  <Compile Include="../../src/TopBar/TrayOverflowHost.cs" Link="TrayOverflowHost.cs"/>
+  <Compile Include="../../src/TopBar/Glass/*.cs" Link="Glass/%(Filename)%(Extension)"/>
+ </ItemGroup>
+</Project>
