@@ -1,10 +1,10 @@
 # Windows 11 TopBar — 실행·소스 안내
 
-[소개](../README.md) · [변경 이력](../Release%20Notes/README.md) · [v0.1.2 GitHub Release](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/tag/v0.1.2)
+[소개](../README.md) · [변경 이력](../Release%20Notes/README.md) · [v0.1.3 GitHub Release](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/tag/v0.1.3)
 
 ## 다운로드와 실행
 
-1. [실행용 ZIP](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/download/v0.1.2/GlassDock-TopBar-v0.1.2-win-x64.zip)을 내려받습니다. 저장소 전체 ZIP을 받았다면 이 폴더의 `portable/GlassDock-TopBar-v0.1.2-win-x64.zip`을 사용합니다.
+1. [실행용 ZIP](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/download/v0.1.3/GlassDock-TopBar-v0.1.3-win-x64.zip)을 내려받습니다. 저장소 전체 ZIP을 받았다면 이 폴더의 `portable/GlassDock-TopBar-v0.1.3-win-x64.zip`을 사용합니다.
 2. 전체 압축을 풉니다.
 3. 기존 상단 바가 켜져 있으면 종료하고 `GlassDock.TopBar.exe`를 실행합니다.
 
@@ -14,7 +14,7 @@ Windows 11 x64와 일반 사용자 권한으로 실행합니다. .NET 8 Desktop 
 
 | 위치 | 내용 |
 |---|---|
-| `portable/GlassDock-TopBar-v0.1.2-win-x64.zip` | 런타임 포함 실행본, 사용 안내와 릴리즈 노트, 파일별 체크섬 |
+| `portable/GlassDock-TopBar-v0.1.3-win-x64.zip` | 런타임 포함 실행본, 사용 안내와 릴리즈 노트, 파일별 체크섬 |
 | `source/` | C# WPF 소스, 검증 프로젝트, 빌드 스크립트 |
 | `SHA256SUMS.txt` | 실행 ZIP의 SHA-256 |
 
@@ -26,7 +26,9 @@ GitHub Release에 첨부한 ZIP과 저장소의 ZIP은 같은 파일입니다. �
 
 상단 바 우클릭 메뉴에서 모니터 변경과 종료를 할 수 있습니다. Windows 트레이의 `GlassDock 상단 바` 메뉴에도 표시·종료 항목이 있습니다. 설정은 `%LOCALAPPDATA%\GlassDock\topbar.json`, 오류 기록은 같은 폴더의 `topbar-errors.log`에 생성됩니다.
 
-트레이 빈 화면·입력 전달 오류는 0.1.2에서 수정·검증했습니다. 실제 알림 수신·배치의 기존 검증 제한은 별개입니다. 배포 범위는 [릴리즈 노트](../Release%20Notes/Release%20Note0.1.2%20ver.md)를 먼저 확인하세요. 카카오톡 자체 알림은 각 PC에서 `설정 → 알림 → 표시 위치 → 화면 우상단`으로 선택해야 합니다.
+상단 바가 켜져 있는 동안 Windows 작업 표시줄(보조 모니터 포함)은 완전히 숨겨지고 그 자리는 화면으로 쓰입니다. 앱 실행·전환은 독을 사용하세요. 숨기는 동안 작업 영역을 돌려받기 위해 Windows 자동 숨기기를 켜 두며, 원래 설정은 같은 폴더의 `taskbar-state.json`에 먼저 기록합니다. 정상 종료·로그오프 때 되돌리고, 강제 종료 때는 별도 복구 감시가 되돌립니다. 숨기는 동안에는 `HKCU\Software\Microsoft\Windows\CurrentVersion\RunOnce`에 `GlassDock.TopBar.RestoreTaskbar` 항목을 두어, 아무것도 복원하지 못한 경우 다음 로그온 때 되돌립니다. 정상 복원되면 이 항목은 삭제됩니다.
+
+0.1.3에서 트레이가 처음부터 최종 모습으로 열리도록 고쳤습니다. 보조 모니터·탐색기 재시작·실제 로그오프 복원과 알림 수신은 실제로 검증하지 않았습니다. 배포 범위는 [릴리즈 노트](../Release%20Notes/Release%20Note0.1.3%20ver.md)를 먼저 확인하세요. 카카오톡 자체 알림은 각 PC에서 `설정 → 알림 → 표시 위치 → 화면 우상단`으로 선택해야 합니다.
 
 ## 소스 수정과 빌드
 
@@ -35,9 +37,10 @@ Windows와 .NET 8 SDK 이상이 필요합니다. PowerShell에서 `source` 폴�
 ```powershell
 dotnet run --project src/TopBar/TopBar.csproj
 dotnet run --project validation/TopBar/TopBarTests.csproj -c Release
+dotnet run --project validation/Taskbar/TaskbarTests.csproj -c Release
 powershell -ExecutionPolicy Bypass -File .\Build-TopBar.ps1
 ```
 
 기본 빌드 결과는 `source/artifacts/topbar-portable/`이며 런타임이 포함됩니다. `-FrameworkDependent`를 지정하면 별도 .NET Desktop Runtime이 필요한 작은 실행본을 만듭니다. 공개 ZIP은 기본 런타임 포함 방식입니다.
 
-실제 화면을 사용하는 자동 숨김·트레이 검사는 실행 중인 상단 바를 종료한 뒤 별도로 진행하세요. 0.1.2 트레이 수정 검사는 `source/validation/트레이수정_0.1.2_2026-11-09.md`에 있고, 이전 위치 수정 당시 기록은 `source/validation/검증결과_2026-11-09.md`에 보존했습니다.
+실제 화면을 사용하는 자동 숨김·트레이 검사는 실행 중인 상단 바를 종료한 뒤 별도로 진행하세요. 0.1.3 작업 표시줄 숨김·트레이 열림 검사는 `source/validation/작업표시줄숨김_트레이수정_0.1.3_2026-11-10.md`, 0.1.2 트레이 수정 검사는 `source/validation/트레이수정_0.1.2_2026-11-09.md`에 있고, 이전 위치 수정 당시 기록은 `source/validation/검증결과_2026-11-09.md`에 보존했습니다.

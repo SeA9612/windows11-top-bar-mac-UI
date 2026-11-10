@@ -56,11 +56,15 @@ class Program
                 var oldPopup=FindPopup();
                 int originalStyle=oldPopup!=0?BarNative.GetWindowLong(oldPopup,-20):0;
                 BarNative.GetWindowRect(oldPopup,out var original);
-                await host.ToggleAsync();await Task.Delay(300);
+                var firstOpen=await Watch(host.ToggleAsync);await Task.Delay(300);
+                Console.WriteLine($"Open #1: native flyout seen {firstOpen.Exposed} times / {firstOpen.Samples} visible samples, glass after {firstOpen.GlassMs} ms");
+                if(firstOpen.Exposed>0)throw new Exception($"Native Explorer flyout was visible before the glass tray ({firstOpen.Exposed} samples)");
+                Console.WriteLine("PASS first open never shows the unstyled native flyout");
                 var popup=FindPopup();
                 var bottom=anchor.PointToScreen(new Point(0,anchor.ActualHeight));
-                if(!host.IsOpen||!BarNative.GetWindowRect(popup,out var bounds)||bounds.Top<bottom.Y||bounds.Top>bottom.Y+16*scale)
-                    throw new Exception("Native flyout did not open below the top-bar anchor");
+                var gotBounds=BarNative.GetWindowRect(popup,out var bounds);
+                if(!host.IsOpen||!gotBounds||bounds.Top<bottom.Y||bounds.Top>bottom.Y+16*scale)
+                    throw new Exception($"Native flyout did not open below the top-bar anchor (open={host.IsOpen}, popup={popup}, top={bounds.Top}, anchor bottom={bottom.Y})");
                 var verifiedCells=new System.Collections.Generic.List<Int32Rect>();
                 var count=await Task.Run(()=>
                 {
@@ -140,6 +144,16 @@ class Program
                     if(BarNative.GetWindowLong(popup,-20)!=originalStyle)throw new Exception("Original native tray style was not restored");
                 }
                 Console.WriteLine("PASS outside focus dismissal and original flyout position restoration");
+                for(int round=2;round<=6;round++)
+                {
+                    var reopen=await Watch(host.ToggleAsync);await Task.Delay(200);
+                    Console.WriteLine($"Open #{round}: native flyout seen {reopen.Exposed} times / {reopen.Samples} visible samples, glass after {reopen.GlassMs} ms");
+                    if(!host.IsOpen)throw new Exception("Native flyout did not reopen");
+                    if(reopen.Exposed>0)throw new Exception($"Native Explorer flyout was visible on reopen ({reopen.Exposed} samples)");
+                    host.Close(false);await Task.Delay(250);
+                    if(LeftoverPopups()>0)throw new Exception("A tooltip of the closed tray flyout stayed on screen");
+                }
+                Console.WriteLine("PASS five reopenings never show the unstyled native flyout");
                 await host.ToggleAsync();await Task.Delay(300);
                 if(!host.IsOpen)throw new Exception("Native flyout did not reopen");
                 host.Close();await Task.Delay(100);
@@ -154,8 +168,10 @@ class Program
                 Console.WriteLine("PASS cancelled opening restores taskbar styles and child visibility");
                 await host.ToggleAsync();
                 if(!host.IsOpen||host.RenderedIconCount==0)throw new Exception("Tray could not reopen after cancelled initialization");
-                host.Close(false);
+                host.Close(false);await Task.Delay(2500); // Explorer's tooltip timer can fire late
                 Console.WriteLine("PASS reopen after cancelled initialization has visible icons");
+                if(LeftoverPopups()>0)throw new Exception("A tooltip of the closed tray flyout stayed on screen");
+                Console.WriteLine("PASS no tray tooltip stays on screen after any close");
                 if(Environment.GetEnvironmentVariable("GLASSDOCK_TRAY_GUARD_TEST_APP") is string recoveryApp)
                 {
                     using var lease=new NativeTrayOpacity(taskbar);lease.RevealTaskbarContent();
@@ -174,6 +190,45 @@ class Program
         };
         app.Run(window);
     }
+    static int LeftoverPopups()
+    {
+        int count=0;
+        foreach(string name in new[]{"TopLevelWindowForOverflowXamlIsland","NotifyIconOverflowWindow"})
+        {
+            var flyout=BarNative.FindWindow(name,null);if(flyout==0)continue;
+            BarNative.EnumWindows((hwnd,_)=>{if(BarNative.IsWindowVisible(hwnd)&&GetWindow(hwnd,4)==flyout)count++;return true;},0);
+        }
+        return count;
+    }
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern nint GetWindow(nint hwnd,uint command);
+    // Polls every millisecond while the tray opens. A visible flyout counts as exposed unless
+    // it is DWM-cloaked or layered at alpha <= 1 (the glass tray draws its icons instead).
+    static async Task<(int Exposed,int Samples,long GlassMs)> Watch(Func<Task> open)
+    {
+        bool stop=false;int exposed=0,samples=0;long glassMs=-1;
+        var clock=System.Diagnostics.Stopwatch.StartNew();
+        var watcher=Task.Run(()=>
+        {
+            while(!System.Threading.Volatile.Read(ref stop))
+            {
+                foreach(string name in new[]{"TopLevelWindowForOverflowXamlIsland","NotifyIconOverflowWindow"})
+                {
+                    var hwnd=BarNative.FindWindow(name,null);
+                    if(hwnd==0||!BarNative.IsWindowVisible(hwnd))continue;
+                    if(BarNative.DwmGetWindowAttribute(hwnd,14,out int cloaked,4)==0&&cloaked!=0)continue;
+                    samples++;
+                    bool transparent=(BarNative.GetWindowLong(hwnd,-20)&0x80000)!=0&&GetLayeredWindowAttributes(hwnd,out _,out byte alpha,out uint flags)&&(flags&2)!=0&&alpha<=1;
+                    if(!transparent)exposed++;
+                }
+                if(glassMs<0&&BarNative.FindWindow(null,"GlassDock · 트레이") is var glass&&glass!=0&&BarNative.IsWindowVisible(glass))glassMs=clock.ElapsedMilliseconds;
+                System.Threading.Thread.Sleep(1);
+            }
+        });
+        await open();await Task.Delay(400);
+        System.Threading.Volatile.Write(ref stop,true);await watcher;
+        return (exposed,samples,glassMs);
+    }
+    [System.Runtime.InteropServices.DllImport("user32.dll",SetLastError=true)] static extern bool GetLayeredWindowAttributes(nint hwnd,out uint color,out byte alpha,out uint flags);
     [System.Runtime.InteropServices.DllImport("user32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode)] static extern nint GetProp(nint hwnd,string name);
 }
 

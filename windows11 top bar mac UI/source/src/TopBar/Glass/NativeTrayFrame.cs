@@ -31,6 +31,19 @@ internal static class NativeTrayFrame
         }
         return FromPixels(pixels,width,height,width*4,GetDpiForWindow(hwnd));
     }
+    // True when two captures show the same settled picture (at most 0.5% of
+    // pixels differ noticeably, which tolerates blinking icon details).
+    internal static bool Matches(BitmapSource a,BitmapSource b)
+    {
+        if(a.PixelWidth!=b.PixelWidth||a.PixelHeight!=b.PixelHeight)return false;
+        int stride=a.PixelWidth*4;
+        var first=new byte[stride*a.PixelHeight];var second=new byte[first.Length];
+        a.CopyPixels(first,stride,0);b.CopyPixels(second,stride,0);
+        int different=0,limit=Math.Max(4,a.PixelWidth*a.PixelHeight/200);
+        for(int i=0;i<first.Length;i+=4)
+            if(Math.Abs(first[i+3]-second[i+3])>48&&++different>limit)return false;
+        return true;
+    }
     internal static int CountVisibleIcons(BitmapSource artwork,IReadOnlyList<Int32Rect> cells)
     {
         var pixels=new byte[artwork.PixelWidth*artwork.PixelHeight*4];artwork.CopyPixels(pixels,artwork.PixelWidth*4,0);

@@ -138,6 +138,9 @@ internal sealed class HostBackdrop : IDisposable
         root.StartAnimation(nameof(Visual.Opacity), animation);
     }
     internal void SetOpacity(float opacity)=>root.Opacity=opacity;
+    // Completes once pending visual changes reached DWM, so the material can
+    // be revealed together with the WPF foreground instead of a frame later.
+    internal System.Threading.Tasks.Task CommittedAsync()=>disposed?System.Threading.Tasks.Task.CompletedTask:compositor.RequestCommitAsync().AsTask();
 
     public void Dispose()
     {

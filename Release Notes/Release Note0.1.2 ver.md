@@ -49,7 +49,7 @@
 
 검사는 테스트 프로그램의 아이콘만 호출했습니다. 사용자 앱 아이콘 실행이나 외부 메시지 전송은 하지 않았습니다. 트레이 검사를 제외한 위치 전용 결과를 전체 트레이 성공으로 기록하지 않았습니다.
 
-상세 기록: [트레이 수정 검증](../windows11%20top%20bar%20mac%20UI/source/validation/트레이수정_0.1.2_2026-11-09.md), [패키지 검증](../windows11%20top%20bar%20mac%20UI/PACKAGE_VALIDATION.md).
+상세 기록: [트레이 수정 검증](../windows11%20top%20bar%20mac%20UI/source/validation/트레이수정_0.1.2_2026-11-09.md), [패키지 검증](https://github.com/SeA9612/windows11-top-bar-mac-UI/blob/v0.1.2/windows11%20top%20bar%20mac%20UI/PACKAGE_VALIDATION.md).
 
 ## 배포와 남은 범위
 

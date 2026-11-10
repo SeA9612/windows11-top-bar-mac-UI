@@ -15,14 +15,19 @@ internal sealed class TrayGlassWindow : Window,IDisposable
     readonly Image icons=new() {Stretch=Stretch.Fill,IsHitTestVisible=false};
     readonly DispatcherTimer refresh=new() {Interval=TimeSpan.FromMilliseconds(150)};
     NativeTrayOpacity? nativeOpacity;
+    readonly bool ownsOpacity;
     HostBackdrop? material;
     bool disposed;
     internal System.Windows.Media.Imaging.BitmapSource? Artwork=>icons.Source as System.Windows.Media.Imaging.BitmapSource;
     int frameCount=1;
     internal int FrameCount=>frameCount;
-    internal TrayGlassWindow(nint source,System.Windows.Media.Imaging.BitmapSource artwork)
+    // `concealed` is the caller's lease that already made the native flyout
+    // transparent before it was first shown; the caller keeps ownership of it.
+    // `backdrop` is a material prepared while Explorer opened the flyout; this
+    // window takes ownership of it.
+    internal TrayGlassWindow(nint source,System.Windows.Media.Imaging.BitmapSource artwork,NativeTrayOpacity? concealed=null,HostBackdrop? backdrop=null)
     {
-        this.source=source;
+        this.source=source;nativeOpacity=concealed;ownsOpacity=concealed==null;material=backdrop;
         icons.Source=artwork;
         Title="GlassDock · 트레이";WindowStyle=WindowStyle.None;ResizeMode=ResizeMode.NoResize;
         AllowsTransparency=true;Background=Brushes.Transparent;ShowInTaskbar=false;ShowActivated=false;Topmost=true;
@@ -46,9 +51,14 @@ internal sealed class TrayGlassWindow : Window,IDisposable
         Closed+=(_,_)=>Release();
         try
         {
-            nativeOpacity=new NativeTrayOpacity(source);
-            Show();material=new HostBackdrop();Sync(bounds);
+            nativeOpacity??=new NativeTrayOpacity(source);
+            // Keep icons and material invisible until the material has reached
+            // DWM, then reveal both at once: no icons on a bare background first.
+            Opacity=0;
+            material??=new HostBackdrop();material.SetOpacity(0);
+            Show();Sync(bounds);
             refresh.Tick+=(_,_)=>Refresh();refresh.Start();
+            Reveal();
         }
         catch{Dispose();throw;}
     }
@@ -63,6 +73,19 @@ internal sealed class TrayGlassWindow : Window,IDisposable
         // window. HTTRANSPARENT alone cannot pass input across UI threads.
         material?.Sync(source,bounds,(float)VisualTreeHelper.GetDpi(this).DpiScaleX);
     }
+    internal bool Revealed {get;private set;}
+    async void Reveal()
+    {
+        try{if(material!=null)await material.CommittedAsync();}
+        catch(Exception e){BarSettings.Log(e);}
+        if(disposed)return;
+        // WPF and Composition present on separate clocks; a short shared fade
+        // hides the frame of skew so neither layer appears alone.
+        BeginAnimation(OpacityProperty,new System.Windows.Media.Animation.DoubleAnimation(0,1,TimeSpan.FromMilliseconds(RevealMs)));
+        material?.Fade(1,RevealMs);
+        Revealed=true;
+    }
+    const int RevealMs=120;
     void SyncMaterial(){if(BarNative.GetWindowRect(source,out var bounds))material?.Sync(source,bounds,(float)VisualTreeHelper.GetDpi(this).DpiScaleX);}
     void Refresh()
     {
@@ -77,7 +100,8 @@ internal sealed class TrayGlassWindow : Window,IDisposable
     void Release()
     {
         if(disposed)return;disposed=true;refresh.Stop();
-        nativeOpacity?.Dispose();nativeOpacity=null;
+        if(ownsOpacity)nativeOpacity?.Dispose();
+        nativeOpacity=null;
         material?.Dispose();material=null;icons.Source=null;
     }
     public void Dispose(){Release();Close();}

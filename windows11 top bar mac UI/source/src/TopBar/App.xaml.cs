@@ -10,11 +10,12 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        if(NativeTrayOpacity.RunGuard(e.Args)){Shutdown();return;}
+        if(NativeTrayOpacity.RunGuard(e.Args)||TaskbarHider.RunGuard(e.Args)){Shutdown();return;}
         instance=new Mutex(true,"Local\\GlassDock.TopBar",out bool first);
         if(!first){MessageBox.Show("상단 바가 이미 실행 중입니다.");Shutdown();return;}
         DispatcherUnhandledException+=(_,args)=>{BarSettings.Log(args.Exception);args.Handled=true;MessageBox.Show("상단 바 오류: "+args.Exception.Message+"\n상단 바를 종료합니다.");Shutdown(1);};
         NativeTrayOpacity.RecoverOrphans();
+        TaskbarHider.RecoverOrphan();
         MainWindow=new TopBarWindow();MainWindow.Show();
     }
     protected override void OnExit(ExitEventArgs e){instance?.Dispose();base.OnExit(e);}

@@ -58,7 +58,7 @@ class TestApp : Application
             SetWindowPos(new WindowInteropHelper(bar).Handle,0,initial.Left,initial.Top+28,initial.Width,28,0x14);
             await Task.Delay(250);CheckPosition(bar,"external position drift recovery");
             ShowWindowAsync(hwnd,3);await Task.Delay(1200);
-            Check(!bar.IsVisible&&!Property(host,"Registered"),"maximized: bar hidden and reservation removed");
+            Check(!bar.IsVisible&&!Property(host,"Registered"),$"maximized: bar hidden and reservation removed (visible={bar.IsVisible}, registered={Property(host,"Registered")}, zoomed={IsZoomed(hwnd)}, fg={GetForegroundWindow()}, helper={hwnd})");
             Check(Forms.Screen.PrimaryScreen!.WorkingArea.Top==baseline,"maximized window can use the former bar area");
             Check(ReferenceEquals(notifications,Field(bar,"notificationPosition")),"notification watcher stays alive while hidden");
             for(int cycle=0;cycle<6;cycle++)
@@ -88,7 +88,7 @@ class TestApp : Application
                 ((Forms.NotifyIcon)Field(bar,"tray")).ShowBalloonTip(3500,"GlassDock test","Auto-hide notification placement test",Forms.ToolTipIcon.Info);
                 await Task.Delay(1800);
                 int count=(int)notifications.GetType().GetProperty("RelocatedCount")!.GetValue(notifications)!;
-                Check(count>0&&!bar.IsVisible,"native notification remains active while the bar is hidden");
+                Check(count>0&&!bar.IsVisible,$"native notification remains active while the bar is hidden (relocated={count}, barVisible={bar.IsVisible})");
                 var toast=FindWindow("Windows.UI.Core.CoreWindow","새 알림");
                 if(toast==0)toast=FindWindow("Windows.UI.Core.CoreWindow","New notification");
                 GetWindowRect(toast,out var toastBounds);GetWindowRect(new WindowInteropHelper(bar).Handle,out var barBounds);
@@ -122,6 +122,8 @@ class TestApp : Application
         finally{bar?.Close();if(helper!=null){helper.Kill();helper.Dispose();}Shutdown(Environment.ExitCode);}
     }
     [DllImport("user32.dll")] static extern bool ShowWindowAsync(nint hwnd,int command);
+    [DllImport("user32.dll")] static extern bool IsZoomed(nint hwnd);
+    [DllImport("user32.dll")] static extern nint GetForegroundWindow();
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern nint FindWindow(string cls,string? title);
     [StructLayout(LayoutKind.Sequential)] struct Rect {public int Left,Top,Right,Bottom;}
     [DllImport("user32.dll")] static extern bool GetWindowRect(nint hwnd,out Rect rect);

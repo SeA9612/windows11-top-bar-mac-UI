@@ -92,6 +92,8 @@ internal sealed class NativeTrayOpacity : IDisposable
         catch(WaitHandleCannotBeOpenedException){RecoverOrphan(hwnd);}
         return true;
     }
+    // True while a tray session has made this taskbar layered and visible.
+    internal static bool IsBorrowed(nint hwnd)=>GetProp(hwnd,Prefix+"Token")!=0;
     internal static void RecoverOrphans()
     {
         foreach(string name in new[]{"TopLevelWindowForOverflowXamlIsland","NotifyIconOverflowWindow","Shell_TrayWnd"})

@@ -23,6 +23,8 @@ internal sealed class TrayOverflowHost : IDisposable
     readonly BarNative.WinEventCallback eventCallback;
     readonly BarNative.WinEventCallback foregroundCallback;
     readonly BarNative.InputHookCallback mouseCallback,keyboardCallback;
+    readonly BarNative.WinEventCallback popupCallback;
+    nint popupHook;
     nint hook,popup,previousForeground,foregroundHook,mouseHook,keyboardHook;
     BarNative.Rect originalBounds,anchorBounds;
     bool closingPending;
@@ -31,6 +33,12 @@ internal sealed class TrayOverflowHost : IDisposable
     TrayGlassWindow? glass;
     NativeTrayOpacity? taskbarRendering;
     readonly Dictionary<nint,(BarNative.Rect Bounds,bool Topmost)> beforeOpen=new();
+    // Native flyouts made transparent before Explorer shows them, so its own
+    // light popup and opening animation never appear before the glass tray.
+    readonly Dictionary<nint,NativeTrayOpacity> concealed=new();
+    // Glass material created while Explorer opens the flyout, so the glass
+    // tray does not wait for Composition when its artwork is ready.
+    HostBackdrop? warmBackdrop;
     public bool IsOpen=>popup!=0&&BarNative.IsWindow(popup)&&BarNative.IsWindowVisible(popup);
     public bool IsInteracting=>opening||IsOpen;
     internal System.Windows.Media.Imaging.BitmapSource? RenderedArtwork=>glass?.Artwork;
@@ -43,6 +51,8 @@ internal sealed class TrayOverflowHost : IDisposable
         eventCallback=OnShellEvent;
         foregroundCallback=OnForegroundChanged;
         mouseCallback=OnMouseInput;keyboardCallback=OnKeyboardInput;
+        popupCallback=OnPopupShown;
+        popupHook=BarNative.SetWinEventHook(0x8002,0x8002,0,popupCallback,0,0,2); // EVENT_OBJECT_SHOW, out of context
         timer.Tick+=(_,_)=>{try{Track();}catch(Exception e){BarSettings.Log(e);Close();}};
     }
 
@@ -71,18 +81,20 @@ internal sealed class TrayOverflowHost : IDisposable
             // Use the real chevron every time so the icon visual tree is live.
             foreach(string name in new[]{"TopLevelWindowForOverflowXamlIsland","NotifyIconOverflowWindow"})
             {
-                var old=BarNative.FindWindow(name,null);if(old!=0)BarNative.ShowWindow(old,0);
+                var old=BarNative.FindWindow(name,null);if(old!=0){BarNative.ShowWindow(old,0);Conceal(old);}
             }
             // UIA must run away from WPF's dispatcher, which receives shell events.
             // https://learn.microsoft.com/dotnet/framework/ui-automation/ui-automation-threading-issues
-            var rendering=await Task.Run(()=>InvokeChevron(taskbar));
+            var invoking=Task.Run(()=>InvokeChevron(taskbar));
+            try{warmBackdrop??=new HostBackdrop();}catch(Exception e){BarSettings.Log(e);}
+            var rendering=await invoking;
             if(disposed||generation!=openGeneration)
             {
                 rendering?.Dispose();
                 foreach(string name in new[]{"TopLevelWindowForOverflowXamlIsland","NotifyIconOverflowWindow"})
                 {
                     var candidate=BarNative.FindWindow(name,null);BarNative.GetWindowThreadProcessId(candidate,out uint owner);
-                    if(candidate!=0&&owner==processId)BarNative.ShowWindow(candidate,0);
+                    if(candidate!=0&&owner==processId){BarNative.ShowWindow(candidate,0);HideOwnedPopups(candidate);}
                 }
                 return;
             }
@@ -162,20 +174,32 @@ internal sealed class TrayOverflowHost : IDisposable
     {
         var hwnd=popup;
         var cells=await Task.Run(()=>ReadIconCells(hwnd));
-        System.Windows.Media.Imaging.BitmapSource? artwork=null;
-        for(int attempt=0;attempt<40;attempt++)
+        System.Windows.Media.Imaging.BitmapSource? artwork=null,candidate=null;
+        BarNative.Rect candidateBounds=default;
+        for(int attempt=0;attempt<60;attempt++)
         {
             if(disposed||generation!=openGeneration||!IsOpen)return;
             artwork=NativeTrayFrame.Capture(popup);
             if(artwork!=null&&attempt>0)cells=await Task.Run(()=>ReadIconCells(hwnd));
-            if(artwork!=null&&cells.Count>0&&NativeTrayFrame.CountVisibleIcons(artwork,cells)==cells.Count)break;
+            if(artwork!=null&&cells.Count>0&&NativeTrayFrame.CountVisibleIcons(artwork,cells)==cells.Count&&BarNative.GetWindowRect(popup,out var current))
+            {
+                // Explorer animates the flyout open. Only a frame that matches the
+                // previous one is final; earlier frames show a half-drawn tray.
+                if(candidate!=null&&SameBounds(current,candidateBounds)&&NativeTrayFrame.Matches(candidate,artwork))break;
+                candidate=artwork;candidateBounds=current;
+            }
+            else candidate=null;
             artwork=null;
             if(cells.Count==0)cells=await Task.Run(()=>ReadIconCells(hwnd));
-            await Task.Delay(50);
+            await Task.Delay(30);
         }
         if(artwork==null)throw new InvalidOperationException("트레이 아이콘 화면이 준비되지 않았습니다.");
         RenderedIconCount=NativeTrayFrame.CountVisibleIcons(artwork,cells);
-        glass??=new TrayGlassWindow(popup,artwork);
+        if(glass==null)
+        {
+            var backdrop=warmBackdrop;warmBackdrop=null; // the glass window owns it from here
+            glass=new TrayGlassWindow(popup,artwork,concealed.GetValueOrDefault(popup),backdrop);
+        }
         foregroundHook=BarNative.SetWinEventHook(3,3,0,foregroundCallback,0,0,0);
         var module=BarNative.GetModuleHandle(null);
         mouseHook=BarNative.SetWindowsHookEx(14,mouseCallback,module,0);
@@ -184,6 +208,7 @@ internal sealed class TrayOverflowHost : IDisposable
             throw new Win32Exception(Marshal.GetLastWin32Error(),"트레이 닫기 처리를 시작하지 못했습니다.");
         stateChanged(true);
     }
+    static bool SameBounds(BarNative.Rect a,BarNative.Rect b)=>a.Left==b.Left&&a.Top==b.Top&&a.Right==b.Right&&a.Bottom==b.Bottom;
     static List<Int32Rect> ReadIconCells(nint hwnd)
     {
         var cells=new List<Int32Rect>();
@@ -272,7 +297,10 @@ internal sealed class TrayOverflowHost : IDisposable
 
     void AttachAndPlace(nint hwnd)
     {
-        if(positioning||disposed||!BarNative.GetWindowRect(hwnd,out var bounds))return;
+        if(positioning||disposed)return;
+        // First sight of a flyout created during this open: hide it before moving it.
+        if(popup==0)Conceal(hwnd);
+        if(!BarNative.GetWindowRect(hwnd,out var bounds))return;
         int width=bounds.Right-bounds.Left,height=bounds.Bottom-bounds.Top;
         if(width<=0||height<=0)return;
         if(popup==0)
@@ -302,6 +330,13 @@ internal sealed class TrayOverflowHost : IDisposable
         finally{positioning=false;}
     }
 
+    void Conceal(nint hwnd)
+    {
+        if(hwnd==0||concealed.ContainsKey(hwnd)||!IsTrayPopup(hwnd))return;
+        try{concealed[hwnd]=new NativeTrayOpacity(hwnd);}
+        catch(Exception e){BarSettings.Log(e);} // Showing the plain flyout beats failing to open.
+    }
+
     public void Close(bool restoreFocus=true)
     {
         openGeneration++;
@@ -311,8 +346,37 @@ internal sealed class TrayOverflowHost : IDisposable
             if(restoreFocus&&previousForeground!=0&&BarNative.IsWindow(previousForeground))BarNative.SetForegroundWindow(previousForeground);
             if(IsOpen)BarNative.ShowWindow(popup,0);
         }
+        HideOwnedPopups(popup);
         Restore();
     }
+
+    // Explorer can show an icon tooltip after its flyout was hidden (a late
+    // tooltip timer, or the next focus change). While the top bar runs, hide
+    // any tooltip whose tray flyout is not on screen.
+    void OnPopupShown(nint eventHook,uint eventId,nint hwnd,int objectId,int childId,uint thread,uint time)
+    {
+        if(objectId!=0||hwnd==0||opening||IsOpen)return;
+        var name=new StringBuilder(64);BarNative.GetClassName(hwnd,name,name.Capacity);
+        if(name.ToString()!="Xaml_WindowedPopupClass")return;
+        var owner=GetWindow(hwnd,4);
+        if(owner!=0&&IsTrayPopup(owner)&&!BarNative.IsWindowVisible(owner))BarNative.ShowWindow(hwnd,0);
+    }
+
+    // Explorer leaves an icon tooltip open when its flyout is hidden without a
+    // focus change (Esc or a programmatic close). Hide only popups it owns.
+    internal static void HideOwnedPopups(nint flyout)
+    {
+        if(flyout==0)return;
+        BarNative.EnumWindows((hwnd,_)=>{
+            if(BarNative.IsWindowVisible(hwnd)&&GetWindow(hwnd,4)==flyout)
+            {
+                var name=new StringBuilder(64);BarNative.GetClassName(hwnd,name,name.Capacity);
+                if(name.ToString()=="Xaml_WindowedPopupClass")BarNative.ShowWindow(hwnd,0);
+            }
+            return true;
+        },0);
+    }
+    [DllImport("user32.dll")] static extern nint GetWindow(nint hwnd,uint command);
 
     void Restore()
     {
@@ -322,6 +386,9 @@ internal sealed class TrayOverflowHost : IDisposable
         if(mouseHook!=0){BarNative.UnhookWindowsHookEx(mouseHook);mouseHook=0;}
         if(keyboardHook!=0){BarNative.UnhookWindowsHookEx(keyboardHook);keyboardHook=0;}
         glass?.Dispose();glass=null;
+        warmBackdrop?.Dispose();warmBackdrop=null;
+        foreach(var lease in concealed.Values)lease.Dispose();
+        concealed.Clear();
         taskbarRendering?.Dispose();taskbarRendering=null;
         var hwnd=popup;popup=0;
         if(hasOriginal&&hwnd!=0&&BarNative.IsWindow(hwnd))
@@ -332,5 +399,9 @@ internal sealed class TrayOverflowHost : IDisposable
         stateChanged(false);
     }
 
-    public void Dispose(){if(disposed)return;disposed=true;Close();}
+    public void Dispose()
+    {
+        if(disposed)return;disposed=true;Close();
+        if(popupHook!=0){BarNative.UnhookWinEvent(popupHook);popupHook=0;}
+    }
 }
