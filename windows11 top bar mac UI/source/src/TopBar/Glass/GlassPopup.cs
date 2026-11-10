@@ -102,6 +102,35 @@ public static class GlassPopup
         }
         else SetPanelForeground(border,foreground);
     }
+    // Same rule as the popups: dark text over a bright backdrop, white otherwise.
+    // Reads nine screen pixels only; nothing is kept or written to disk.
+    internal static bool IsBrightBehind(int left,int top,int width,int height)
+    {
+        var points=new System.Collections.Generic.List<(int X,int Y)>();
+        foreach(double x in new[]{.15,.5,.85})foreach(double y in new[]{.2,.5,.8})points.Add((left+(int)(width*x),top+(int)(height*y)));
+        return MedianLevel(points)>BrightLevel;
+    }
+    internal const double BrightLevel=145;
+    // Median luminance (0-255) of the given screen pixels, NaN when none could be read.
+    // Reads the composed screen, so over our own glass it sees the blur and tint
+    // exactly as the text does. Nothing is kept or written to disk.
+    internal static double MedianLevel(System.Collections.Generic.IEnumerable<(int X,int Y)> points)
+    {
+        var levels=new System.Collections.Generic.List<double>();var dc=GetDC(0);
+        try
+        {
+            if(dc==0)return double.NaN;
+            foreach(var (x,y) in points)
+            {
+                uint color=GetPixel(dc,x,y);
+                if(color!=0xFFFFFFFF)levels.Add(.2126*(color&255)+.7152*((color>>8)&255)+.0722*((color>>16)&255));
+            }
+        }
+        finally{if(dc!=0)ReleaseDC(0,dc);}
+        if(levels.Count==0)return double.NaN;
+        levels.Sort();
+        return levels[levels.Count/2];
+    }
     static void SetMenuForeground(MenuItem item,Brush brush)
     {
         item.Foreground=brush;

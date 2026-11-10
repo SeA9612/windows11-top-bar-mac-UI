@@ -65,7 +65,7 @@ ZIP의 전체 압축을 풀고 `GlassDock.TopBar.exe`를 실행합니다. Window
 | 정상 종료 | 작업 표시줄·자동 숨기기 설정 복원, 기록·로그온 복원 항목 삭제 |
 | 강제 종료 | 단일 프로세스·프로세스 트리 강제 종료 모두 작업 표시줄 복원 |
 
-상세 기록: [0.1.3 검증](../windows11%20top%20bar%20mac%20UI/source/validation/작업표시줄숨김_트레이수정_0.1.3_2026-11-10.md), [패키지 검증](../windows11%20top%20bar%20mac%20UI/PACKAGE_VALIDATION.md).
+상세 기록: [0.1.3 검증](../windows11%20top%20bar%20mac%20UI/source/validation/작업표시줄숨김_트레이수정_0.1.3_2026-11-10.md), [패키지 검증](https://github.com/SeA9612/windows11-top-bar-mac-UI/blob/v0.1.3/windows11%20top%20bar%20mac%20UI/PACKAGE_VALIDATION.md).
 
 ## 배포와 남은 범위
 

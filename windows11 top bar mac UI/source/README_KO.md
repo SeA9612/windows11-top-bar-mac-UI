@@ -3,7 +3,7 @@
 최종 정리: 2026-11-09 (한국 시간)
 Windows 11 x64에서 독과 별도로 실행되는 WPF 상단 바입니다.
 
-현재 로컬 버전: **0.1.3**. 상단 바가 켜져 있는 동안 Windows 작업 표시줄을 완전히 숨기고, 트레이가 처음부터 최종 위치·모습으로 열리도록 수정했습니다. 최신 검사 결과는 `validation/작업표시줄숨김_트레이수정_0.1.3_2026-11-10.md`입니다. 0.1.2 트레이 수정 기록은 `validation/트레이수정_0.1.2_2026-11-09.md`에 보존했습니다.
+현재 로컬 버전: **0.1.4**. Windows 키로 화면 가운데에 유리 시작 화면이 열리도록 추가했습니다. 최신 검사 결과는 `validation/유리시작화면_0.1.4_2026-11-10.md`입니다. 0.1.3 작업 표시줄 숨김·트레이 수정 기록은 `validation/작업표시줄숨김_트레이수정_0.1.3_2026-11-10.md`에 있습니다. 0.1.2 트레이 수정 기록은 `validation/트레이수정_0.1.2_2026-11-09.md`에 보존했습니다.
 
 ## 실행
 
@@ -23,6 +23,7 @@ Windows 11 x64에서 독과 별도로 실행되는 WPF 상단 바입니다.
 - 메뉴·하위 메뉴·패널·트레이는 독과 같은 투명 유리 색조, Windows Composition 흐림, 가장자리 반사와 그림자를 사용합니다. 글자는 배경 밝기에 맞춰 조정하며 분홍색 선택 효과는 없습니다.
 - 상단 바가 켜져 있는 동안 Windows 작업 표시줄(보조 모니터 포함)을 완전히 숨기고 그 자리를 화면으로 씁니다. 앱 실행·전환은 독이 맡습니다. 탐색기가 다시 시작되거나 작업 표시줄이 다시 나타나면 곧바로 다시 숨깁니다.
 - 작업 영역을 돌려받기 위해 숨기는 동안 Windows 자동 숨기기를 켜 둡니다. 원래 설정은 `%LOCALAPPDATA%\GlassDock\taskbar-state.json`에 먼저 기록합니다. 정상 종료·로그오프 때 원래 설정으로 되돌립니다. 강제 종료 때는 별도 감시 프로세스가 되돌립니다. 감시 프로세스는 상단 바의 프로세스 트리 밖에서 실행되므로 작업 관리자의 "프로세스 트리 끝내기"로 함께 종료되지 않습니다. 숨기는 동안에는 `HKCU\...\RunOnce`에 `GlassDock.TopBar.RestoreTaskbar` 항목을 등록해 둡니다. 전원이 꺼지는 등 아무것도 복원하지 못한 경우에도 다음 로그온 때 한 번 실행되어 작업 표시줄을 되돌립니다. 정상 복원되면 이 항목은 삭제됩니다.
+- Windows 키를 혼자 눌렀다 떼면 기본 시작 메뉴 대신 화면 가운데에 유리 시작 화면이 열립니다(다시 누르면 닫힘). 위쪽 검색창과 범주 칸 4열(생산성·유틸리티 및 도구·개발자 도구·기타·창의성·게임·엔터테인먼트)로 구성되고, 칸 안 아이콘을 누르면 바로 실행, 칸을 누르면 그 범주의 앱 전체가 보입니다. 독과 같은 유리 재질이며, 뒤 화면 밝기에 따라 글자색이 바뀝니다. Win+E 같은 조합 키는 그대로 동작하고 Ctrl+Esc는 기본 시작 메뉴를 엽니다. 앱 목록은 Windows의 앱 폴더(shell:AppsFolder)에서 읽고, 범주는 Windows가 공개하지 않아 이름·앱 ID 규칙으로 분류합니다(`src/TopBar/StartCatalog.cs`).
 - Windows 기본 알림 배너는 상단 바 오른쪽 아래에 표시되도록 위치를 조정합니다. 상단 바가 숨겨져 있어도 알림 감시와 오른쪽 위 배치는 계속 작동합니다. 메시지 내용이나 발신자를 읽거나 저장하지 않습니다.
 
 ## 다른 PC에 적용할 때
@@ -57,6 +58,7 @@ powershell -ExecutionPolicy Bypass -File .\Build-TopBar.ps1
 - `src/TopBar/Glass/NativeTrayOpacity.cs`: 트레이 원래 스타일 복원과 종료 복구 감시.
 - `src/TopBar/NotificationPositionHost.cs`: Windows 알림 배너 위치.
 - `src/TopBar/AppBarHost.cs`: 화면 위쪽 작업 영역 예약.
+- `src/TopBar/StartKeyHook.cs`, `StartMenuWindow.cs`, `StartCatalog.cs`, `StartApps.cs`: Windows 키 가로채기, 유리 시작 화면, 앱 분류·검색, 앱 목록·아이콘.
 - `src/TopBar/TaskbarHider.cs`: Windows 작업 표시줄 숨김, 원래 자동 숨기기 설정 기록·복원, 강제 종료 복구 감시.
 
 ## 검증과 범위
@@ -67,6 +69,12 @@ powershell -ExecutionPolicy Bypass -File .\Build-TopBar.ps1
 
 ```powershell
 dotnet run --project validation/Taskbar/TaskbarTests.csproj -c Release
+```
+
+유리 시작 화면 통합 검사는 다음과 같습니다. 실행 중인 상단 바를 종료하고, 실행 중에는 키보드·마우스를 건드리지 마세요(Windows 키·Ctrl+Esc·Esc를 직접 보냅니다). 기본 시작 메뉴가 열렸는지는 화면 아래쪽 띠에 깐 단색 캔버스의 픽셀이 바뀌는지로 판단하고, 맨 앞에서 Ctrl+Esc로 이 감지기를 먼저 확인합니다. 이 Windows 11 25H2에서는 시작 메뉴 창이 창 목록에 나오지 않고 닫혀도 창 상태가 바뀌지 않아 일반 창 정보로는 판단할 수 없기 때문입니다.
+
+```powershell
+dotnet run --project validation/Start/StartTests.csproj -c Release
 ```
 
 42개 상태·배치·Win32 ABI 검사와 네이티브 트레이의 위치, 아이콘 클릭 영역, 투명 그림, 외부 포커스 닫기, 재열기, 원래 위치·스타일 복원 및 복구 감시 경로를 확인했습니다. 밝은 배경과 어두운 배경의 메뉴·하위 메뉴도 표시 확인했습니다.

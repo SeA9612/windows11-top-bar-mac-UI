@@ -30,6 +30,8 @@ public sealed class TopBarWindow : Window
     TrayOverflowHost? trayOverflow;
     NotificationPositionHost? notificationPosition;
     TaskbarHider? taskbarHider;
+    StartMenuWindow? startMenu;
+    StartKeyHook? startKey;
     bool closeTrayOnClick;
     nint currentWindow;
     bool shuttingDown;
@@ -63,12 +65,22 @@ public sealed class TopBarWindow : Window
         Loaded+=(_,_)=>{appBar=new AppBarHost(this,SelectedScreen);notificationPosition=new NotificationPositionHost(this);
             try{taskbarHider=new TaskbarHider(new WindowInteropHelper(this).Handle,()=>trayOverflow?.IsInteracting==true);}
             catch(Exception e){BarSettings.Log(e);MessageBox.Show(this,"Windows 작업 표시줄을 숨기지 못했습니다. 작업 표시줄은 그대로 둡니다.\n"+e.Message,"상단 바");}
+            try{startMenu=new StartMenuWindow();startKey=new StartKeyHook(Dispatcher,ToggleStart);}
+            catch(Exception e){BarSettings.Log(e);startKey?.Dispose();startKey=null;}
             Tick();RefreshStatus();RefreshBackground();clockTimer.Start();statusTimer.Start();backgroundTimer.Start();};
         backgroundTimer.Tick+=(_,_)=>RefreshBackground();
         clockTimer.Tick+=(_,_)=>Tick();statusTimer.Tick+=(_,_)=>RefreshStatus();
         SizeChanged+=(_,_)=>{menus.Visibility=ActualWidth<850?Visibility.Collapsed:Visibility.Visible;appName.MaxWidth=ActualWidth<850?120:220;appName.Visibility=ActualWidth<600?Visibility.Collapsed:Visibility.Visible;};
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged+=OnDisplayChanged;
-        Closed+=(_,_)=>{shuttingDown=true;clockTimer.Stop();statusTimer.Stop();backgroundTimer.Stop();if(openPopup!=null)openPopup.IsOpen=false;notificationPosition?.Dispose();trayOverflow?.Dispose();appBar?.Dispose();taskbarHider?.Dispose();tray.Dispose();Microsoft.Win32.SystemEvents.DisplaySettingsChanged-=OnDisplayChanged;};
+        Closed+=(_,_)=>{shuttingDown=true;clockTimer.Stop();statusTimer.Stop();backgroundTimer.Stop();if(openPopup!=null)openPopup.IsOpen=false;notificationPosition?.Dispose();trayOverflow?.Dispose();appBar?.Dispose();taskbarHider?.Dispose();startKey?.Dispose();startMenu?.Close();tray.Dispose();Microsoft.Win32.SystemEvents.DisplaySettingsChanged-=OnDisplayChanged;};
+    }
+    void ToggleStart()
+    {
+        if(shuttingDown||startMenu==null)return;
+        if(openPopup!=null)openPopup.IsOpen=false;
+        trayOverflow?.Close();
+        if(start.ContextMenu!=null)start.ContextMenu.IsOpen=false;
+        startMenu.Toggle();
     }
     Forms.Screen SelectedScreen()=>Forms.Screen.AllScreens.FirstOrDefault(s=>s.DeviceName==settings.Monitor)??Forms.Screen.PrimaryScreen??Forms.Screen.AllScreens[0];
     void ShowBar(){Show();appBar?.Place();}
@@ -231,7 +243,7 @@ public sealed class TopBarWindow : Window
         monitors.SubmenuOpened+=(_,_)=>{monitors.Items.Clear();foreach(var s in Forms.Screen.AllScreens){var i=new MenuItem {Header=s.DeviceName+(s.Primary?" · 주 모니터":""),IsCheckable=true,IsChecked=s.DeviceName==SelectedScreen().DeviceName};i.Click+=(_,_)=>Run(()=>{settings.Monitor=s.DeviceName;settings.Save();if(openPopup!=null)openPopup.IsOpen=false;appBar?.Schedule();});monitors.Items.Add(i);}};menu.Items.Add(monitors);
         Add(menu,"상단 바 안내",ShowHelp);menu.Items.Add(new Separator());Add(menu,"상단 바 종료",Close);return menu;
     }
-    void ShowHelp()=>MessageBox.Show(this,"GlassDock 상단 바 0.1\n\nWindows 버튼: PC 정보·설정·최근 항목·전원 메뉴\n현재 앱: 실제 전경 앱\n한국어/ENG: 키보드 언어 (한/영 입력 모드와 다름)\n소리: 실제 시스템 음량과 음소거\n네트워크: 어댑터 연결 상태 및 설정\n트레이 화살표: 상단에 숨겨진 트레이 아이콘 표시\n알림: Windows 기본 알림 배너를 바 오른쪽 아래에 표시\n시계: 현재 PC 날짜와 시간\n\n카카오톡 자체 알림은 카카오톡 설정의 표시 위치를 화면 우상단으로 선택하세요.\n앱마다 다른 파일·편집 메뉴는 아직 지원하지 않습니다.\n상단 바가 켜져 있는 동안 Windows 작업 표시줄은 숨겨지고 그 자리는 화면으로 쓰입니다. 앱 실행·전환은 독을 사용하세요.\n상단 바를 종료하면 작업 표시줄과 원래 자동 숨기기 설정이 돌아옵니다.\n우클릭 메뉴에서 모니터 변경과 종료가 가능합니다.","상단 바 안내");
+    void ShowHelp()=>MessageBox.Show(this,"GlassDock 상단 바 0.1\n\nWindows 버튼: PC 정보·설정·최근 항목·전원 메뉴\n현재 앱: 실제 전경 앱\n한국어/ENG: 키보드 언어 (한/영 입력 모드와 다름)\n소리: 실제 시스템 음량과 음소거\n네트워크: 어댑터 연결 상태 및 설정\n트레이 화살표: 상단에 숨겨진 트레이 아이콘 표시\n알림: Windows 기본 알림 배너를 바 오른쪽 아래에 표시\n시계: 현재 PC 날짜와 시간\n\n카카오톡 자체 알림은 카카오톡 설정의 표시 위치를 화면 우상단으로 선택하세요.\n앱마다 다른 파일·편집 메뉴는 아직 지원하지 않습니다.\n상단 바가 켜져 있는 동안 Windows 작업 표시줄은 숨겨지고 그 자리는 화면으로 쓰입니다. 앱 실행·전환은 독을 사용하세요.\n상단 바를 종료하면 작업 표시줄과 원래 자동 숨기기 설정이 돌아옵니다.\nWindows 키: 화면 가운데에 유리 시작 화면(앱 검색·범주) 표시. Win+E 같은 단축키는 그대로 동작하며, Ctrl+Esc는 기본 시작 메뉴를 엽니다.\n우클릭 메뉴에서 모니터 변경과 종료가 가능합니다.","상단 바 안내");
     Popup OpenPanel(Button anchor,FrameworkElement content,Action? onClose=null)
     {
         trayOverflow?.Close();

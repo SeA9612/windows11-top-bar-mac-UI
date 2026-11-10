@@ -138,6 +138,8 @@ internal sealed class HostBackdrop : IDisposable
         root.StartAnimation(nameof(Visual.Opacity), animation);
     }
     internal void SetOpacity(float opacity)=>root.Opacity=opacity;
+    // Keeps the compositor alive for the next show; Sync shows the window again.
+    internal void Hide(){if(!disposed)BarNative.ShowWindow(hwnd,0);}
     // Completes once pending visual changes reached DWM, so the material can
     // be revealed together with the WPF foreground instead of a frame later.
     internal System.Threading.Tasks.Task CommittedAsync()=>disposed?System.Threading.Tasks.Task.CompletedTask:compositor.RequestCommitAsync().AsTask();

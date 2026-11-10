@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><TargetFramework>net8.0-windows10.0.22000.0</TargetFramework><OutputType>Exe</OutputType><UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><ImplicitUsings>disable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+ <ItemGroup><ProjectReference Include="../../src/TopBar/TopBar.csproj" /></ItemGroup>
+</Project>
