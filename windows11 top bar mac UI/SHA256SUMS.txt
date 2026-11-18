@@ -1,1 +1,1 @@
-283093b57ad409a07311227a540e0e8870df8e9e64027b9d038869b7beb25011  portable/GlassDock-TopBar-v0.1.4-win-x64.zip
+4cd06751a41db2778e3d80d6e8f292877ee38475044cf1d50be82013478c236d  portable/GlassDock-TopBar-v0.1.5-win-x64.zip

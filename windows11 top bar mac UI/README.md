@@ -1,10 +1,10 @@
 # Windows 11 TopBar — 실행·소스 안내
 
-[소개](../README.md) · [변경 이력](../Release%20Notes/README.md) · [v0.1.4 GitHub Release](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/tag/v0.1.4)
+[소개](../README.md) · [변경 이력](../Release%20Notes/README.md) · [v0.1.5 GitHub Release](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/tag/v0.1.5)
 
 ## 다운로드와 실행
 
-1. [실행용 ZIP](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/download/v0.1.4/GlassDock-TopBar-v0.1.4-win-x64.zip)을 내려받습니다. 저장소 전체 ZIP을 받았다면 이 폴더의 `portable/GlassDock-TopBar-v0.1.4-win-x64.zip`을 사용합니다.
+1. [실행용 ZIP](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/download/v0.1.5/GlassDock-TopBar-v0.1.5-win-x64.zip)을 내려받습니다. 저장소 전체 ZIP을 받았다면 이 폴더의 `portable/GlassDock-TopBar-v0.1.5-win-x64.zip`을 사용합니다.
 2. 전체 압축을 풉니다.
 3. 기존 상단 바가 켜져 있으면 종료하고 `GlassDock.TopBar.exe`를 실행합니다.
 
@@ -14,7 +14,7 @@ Windows 11 x64와 일반 사용자 권한으로 실행합니다. .NET 8 Desktop 
 
 | 위치 | 내용 |
 |---|---|
-| `portable/GlassDock-TopBar-v0.1.4-win-x64.zip` | 런타임 포함 실행본, 사용 안내와 릴리즈 노트, 파일별 체크섬 |
+| `portable/GlassDock-TopBar-v0.1.5-win-x64.zip` | 런타임 포함 실행본, 사용 안내와 릴리즈 노트, 파일별 체크섬 |
 | `source/` | C# WPF 소스, 검증 프로젝트, 빌드 스크립트 |
 | `SHA256SUMS.txt` | 실행 ZIP의 SHA-256 |
 
@@ -28,7 +28,9 @@ GitHub Release에 첨부한 ZIP과 저장소의 ZIP은 같은 파일입니다. �
 
 상단 바가 켜져 있는 동안 Windows 작업 표시줄(보조 모니터 포함)은 완전히 숨겨지고 그 자리는 화면으로 쓰입니다. 앱 실행·전환은 독을 사용하세요. 숨기는 동안 작업 영역을 돌려받기 위해 Windows 자동 숨기기를 켜 두며, 원래 설정은 같은 폴더의 `taskbar-state.json`에 먼저 기록합니다. 정상 종료·로그오프 때 되돌리고, 강제 종료 때는 별도 복구 감시가 되돌립니다. 숨기는 동안에는 `HKCU\Software\Microsoft\Windows\CurrentVersion\RunOnce`에 `GlassDock.TopBar.RestoreTaskbar` 항목을 두어, 아무것도 복원하지 못한 경우 다음 로그온 때 되돌립니다. 정상 복원되면 이 항목은 삭제됩니다.
 
-0.1.4부터 상단 바가 켜져 있는 동안 Windows 키를 누르면 화면 가운데에 유리 시작 화면(검색창과 앱 범주)이 열립니다. 다시 누르면 닫히고, Win+E 같은 조합 키는 그대로 동작하며, 기본 시작 메뉴는 Ctrl+Esc로 열 수 있습니다. 상단 바를 종료하면 Windows 키는 원래대로 돌아옵니다. 배포 범위는 [릴리즈 노트](../Release%20Notes/Release%20Note0.1.4%20ver.md)를 먼저 확인하세요. 카카오톡 자체 알림은 각 PC에서 `설정 → 알림 → 표시 위치 → 화면 우상단`으로 선택해야 합니다.
+0.1.5부터 Windows 데스크톱을 전환해도(Ctrl+Win+←/→, 작업 보기) 상단 바가 모든 데스크톱에 표시됩니다. "모든 데스크톱에 이 창 표시"와 같은 방식으로 고정하며, 이 기능을 쓸 수 없는 Windows에서는 전환 때 현재 데스크톱으로 옮깁니다(잠깐 깜빡일 수 있음). 동작 기록은 같은 폴더의 `topbar.log`에 남습니다.
+
+0.1.4부터 상단 바가 켜져 있는 동안 Windows 키를 누르면 화면 가운데에 유리 시작 화면(검색창과 앱 범주)이 열립니다. 다시 누르면 닫히고, Win+E 같은 조합 키는 그대로 동작하며, 기본 시작 메뉴는 Ctrl+Esc로 열 수 있습니다. 상단 바를 종료하면 Windows 키는 원래대로 돌아옵니다. 배포 범위는 [0.1.5 릴리즈 노트](../Release%20Notes/Release%20Note0.1.5%20ver.md)와 [0.1.4 릴리즈 노트](../Release%20Notes/Release%20Note0.1.4%20ver.md)를 먼저 확인하세요. 카카오톡 자체 알림은 각 PC에서 `설정 → 알림 → 표시 위치 → 화면 우상단`으로 선택해야 합니다.
 
 ## 소스 수정과 빌드
 

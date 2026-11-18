@@ -8,7 +8,7 @@
 
 GlassDock TopBar는 Windows 11에서 독립 실행되는 상단 바입니다. macOS에서 영감을 받은 간결한 구성에 Windows 시스템 메뉴, 현재 앱 이름, 소리와 네트워크, 날짜·시간을 담았습니다. [GlassDock 독](https://github.com/SeA9612/windows11-glass-dock-mac-UI)과 함께 사용할 수 있으며, 독 설치 없이도 실행됩니다.
 
-[**실행용 ZIP 다운로드 · v0.1.4**](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/download/v0.1.4/GlassDock-TopBar-v0.1.4-win-x64.zip) · [GitHub Release](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/tag/v0.1.4) · [변경 이력](Release%20Notes/README.md)
+[**실행용 ZIP 다운로드 · v0.1.5**](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/download/v0.1.5/GlassDock-TopBar-v0.1.5-win-x64.zip) · [GitHub Release](https://github.com/SeA9612/windows11-top-bar-mac-UI/releases/tag/v0.1.5) · [변경 이력](Release%20Notes/README.md)
 
 ## 주요 기능
 
@@ -22,6 +22,7 @@ GlassDock TopBar는 Windows 11에서 독립 실행되는 상단 바입니다. ma
 | 투명 유리 메뉴 | 독과 같은 흐림, 옅은 색조, 반사광과 그림자. 분홍색 선택 효과 없음 |
 | 유리 시작 화면 | Windows 키로 화면 가운데에 검색창과 앱 범주를 여는 독 스타일 유리 시작 화면 |
 | 작업 표시줄 숨김 | 실행 중 Windows 작업 표시줄을 완전히 숨기고 그 자리를 화면으로 사용, 종료 시 원래 설정 복원 |
+| 모든 데스크톱에 표시 | Windows 데스크톱을 전환해도 상단 바가 계속 보임 |
 | 트레이·알림 연동 | Explorer 트레이 창과 Windows 알림 호스트의 위치 연동 구현. 아래 제한 확인 필요 |
 
 ## 완성 화면
@@ -46,19 +47,18 @@ Windows 11 **x64**용입니다. .NET 런타임이 포함되어 있어 SDK·런�
 
 EXE와 같은 폴더의 DLL·런타임 파일을 함께 보관하세요. ZIP 안에서 직접 실행하거나 EXE만 분리해 이동하지 마세요. 자동 시작이나 관리자 권한을 요구하지 않습니다. 실행하는 동안 Windows 작업 표시줄이 숨겨지며, 종료하면 돌아옵니다.
 
-기존 독 저장소와 같이 **Code → Download ZIP**으로 전체 저장소를 받을 수도 있습니다. 이 경우 `windows11 top bar mac UI/portable/GlassDock-TopBar-v0.1.4-win-x64.zip`을 한 번 더 풀고 실행하세요.
+기존 독 저장소와 같이 **Code → Download ZIP**으로 전체 저장소를 받을 수도 있습니다. 이 경우 `windows11 top bar mac UI/portable/GlassDock-TopBar-v0.1.5-win-x64.zip`을 한 번 더 풀고 실행하세요.
 
 자세한 안내와 체크섬은 [실행·소스 폴더](windows11%20top%20bar%20mac%20UI/README.md)에 있습니다.
 
 ## 이번 배포의 수정 사항
 
-현재 버전은 **0.1.4 미리보기 배포본**입니다.
+현재 버전은 **0.1.5 미리보기 배포본**입니다.
 
-- **유리 시작 화면:** 상단 바가 켜져 있는 동안 Windows 키를 누르면 기본 시작 메뉴 대신 화면 가운데에 유리 시작 화면이 열립니다. 위쪽 검색창과 앱 범주 칸(생산성, 유틸리티 및 도구, 개발자 도구 등)으로 구성되고, 독과 같은 유리 재질이며 뒤 화면 밝기에 따라 글자색이 바뀝니다. Win+E 같은 조합 키는 그대로 동작하고, 기본 시작 메뉴는 Ctrl+Esc로 열 수 있습니다.
-- 0.1.3의 작업 표시줄 완전 숨김과 트레이 수정은 그대로 유지합니다.
+- **모든 가상 데스크톱에 표시:** Windows 데스크톱을 전환하면(Ctrl+Win+←/→, 작업 보기) 상단 바가 사라지던 문제를 고쳤습니다. 상단 바가 작업 표시줄을 숨기고 있어 다른 데스크톱에서는 둘 다 없는 화면이 되던 문제입니다. "모든 데스크톱에 이 창 표시"와 같은 방식으로 고정하고, 이 기능을 쓸 수 없는 Windows에서는 전환 때 현재 데스크톱으로 옮깁니다.
+- 0.1.4의 유리 시작 화면, 0.1.3의 작업 표시줄 완전 숨김과 트레이 수정은 그대로 유지합니다.
 
-기본 검사 72개, 유리 시작 화면 검사 35개(연속 5회), 작업 표시줄·트레이·최대화 자동 숨김 검사가 통과했습니다. 상세 내용은 [0.1.4 릴리즈 노트](Release%20Notes/Release%20Note0.1.4%20ver.md)를 참고하세요.
-
+기본 검사 72개, 유리 시작 화면 검사 35개, 작업 표시줄·트레이·최대화 자동 숨김 검사가 통과했고, 실제 데스크톱 전환으로 상단 바와 유리 시작 화면이 표시되는 것을 확인했습니다. 상세 내용은 [0.1.5 릴리즈 노트](Release%20Notes/Release%20Note0.1.5%20ver.md)를 참고하세요.
 ## 현재 확인된 제한
 
 - 상단 바가 켜져 있는 동안에는 Windows 작업 표시줄을 쓸 수 없습니다. Windows 키는 유리 시작 화면을 열고, 기본 시작 메뉴는 Ctrl+Esc로 열 수 있습니다.

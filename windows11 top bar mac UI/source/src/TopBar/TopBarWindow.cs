@@ -25,6 +25,7 @@ public sealed class TopBarWindow : Window
     readonly StackPanel menus=new() {Orientation=Orientation.Horizontal};
     readonly Button start=new(),language=new(),network=new(),sound=new(),battery=new(),overflow=new(),clock=new();
     readonly Forms.NotifyIcon tray;
+    AllDesktops? allDesktops;
     AppBarHost? appBar;
     Popup? openPopup;
     TrayOverflowHost? trayOverflow;
@@ -62,7 +63,7 @@ public sealed class TopBarWindow : Window
         surface.ContextMenu=BuildContextMenu();
         tray=new Forms.NotifyIcon {Icon=System.Drawing.SystemIcons.Application,Text="GlassDock 상단 바",Visible=true};
         var trayMenu=new Forms.ContextMenuStrip();trayMenu.Items.Add("상단 바 표시",null,(_,_)=>Dispatcher.Invoke(()=>{keepVisibleUntil=Environment.TickCount64+3000;ShowBar();}));trayMenu.Items.Add("상단 바 종료",null,(_,_)=>Dispatcher.Invoke(Close));tray.ContextMenuStrip=trayMenu;
-        Loaded+=(_,_)=>{appBar=new AppBarHost(this,SelectedScreen);notificationPosition=new NotificationPositionHost(this);
+        Loaded+=(_,_)=>{allDesktops??=new AllDesktops(Dispatcher,BarSettings.Note);appBar=new AppBarHost(this,SelectedScreen);notificationPosition=new NotificationPositionHost(this);
             try{taskbarHider=new TaskbarHider(new WindowInteropHelper(this).Handle,()=>trayOverflow?.IsInteracting==true);}
             catch(Exception e){BarSettings.Log(e);MessageBox.Show(this,"Windows 작업 표시줄을 숨기지 못했습니다. 작업 표시줄은 그대로 둡니다.\n"+e.Message,"상단 바");}
             try{startMenu=new StartMenuWindow();startKey=new StartKeyHook(Dispatcher,ToggleStart);}
@@ -72,7 +73,7 @@ public sealed class TopBarWindow : Window
         clockTimer.Tick+=(_,_)=>Tick();statusTimer.Tick+=(_,_)=>RefreshStatus();
         SizeChanged+=(_,_)=>{menus.Visibility=ActualWidth<850?Visibility.Collapsed:Visibility.Visible;appName.MaxWidth=ActualWidth<850?120:220;appName.Visibility=ActualWidth<600?Visibility.Collapsed:Visibility.Visible;};
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged+=OnDisplayChanged;
-        Closed+=(_,_)=>{shuttingDown=true;clockTimer.Stop();statusTimer.Stop();backgroundTimer.Stop();if(openPopup!=null)openPopup.IsOpen=false;notificationPosition?.Dispose();trayOverflow?.Dispose();appBar?.Dispose();taskbarHider?.Dispose();startKey?.Dispose();startMenu?.Close();tray.Dispose();Microsoft.Win32.SystemEvents.DisplaySettingsChanged-=OnDisplayChanged;};
+        Closed+=(_,_)=>{shuttingDown=true;allDesktops?.Dispose();clockTimer.Stop();statusTimer.Stop();backgroundTimer.Stop();if(openPopup!=null)openPopup.IsOpen=false;notificationPosition?.Dispose();trayOverflow?.Dispose();appBar?.Dispose();taskbarHider?.Dispose();startKey?.Dispose();startMenu?.Close();tray.Dispose();Microsoft.Win32.SystemEvents.DisplaySettingsChanged-=OnDisplayChanged;};
     }
     void ToggleStart()
     {

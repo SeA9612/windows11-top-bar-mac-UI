@@ -26,5 +26,7 @@ public sealed class BarSettings
     public static string Folder=>Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"GlassDock");
     public static BarSettings Load(){try{return JsonSerializer.Deserialize<BarSettings>(File.ReadAllText(Path.Combine(Folder,"topbar.json")))??new();}catch(Exception e) when(e is IOException or JsonException or UnauthorizedAccessException){return new();}}
     public void Save(){Directory.CreateDirectory(Folder);var path=Path.Combine(Folder,"topbar.json");File.WriteAllText(path+".tmp",JsonSerializer.Serialize(this));File.Move(path+".tmp",path,true);}
+    // Short status lines (for example, how windows are kept on all virtual desktops).
+    public static void Note(string message){try{Directory.CreateDirectory(Folder);File.AppendAllText(Path.Combine(Folder,"topbar.log"),DateTimeOffset.Now+" "+message+Environment.NewLine);}catch{}}
     public static void Log(Exception e){try{Directory.CreateDirectory(Folder);File.AppendAllText(Path.Combine(Folder,"topbar-errors.log"),DateTimeOffset.Now+" "+e+Environment.NewLine);}catch{}}
 }
